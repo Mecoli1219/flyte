@@ -1,4 +1,5 @@
 export REPOSITORY=flyte
+export REPO_ROOT=.
 include boilerplate/flyte/end2end/Makefile
 include boilerplate/flyte/golang_test_targets/Makefile
 
@@ -144,6 +145,14 @@ lint-helm-charts:
 .PHONY: spellcheck
 spellcheck:
 	act pull_request --container-architecture linux/amd64 -W .github/workflows/codespell.yml
+
+.PHONY: download_tooling
+download_tooling: #download dependencies (including test deps) for the package
+	@./boilerplate/flyte/golang_test_targets/download_tooling.sh
+
+.PHONY: lint
+lint: download_tooling #lints the package for common code smells
+	GL_DEBUG=linters_output,env golangci-lint run --fix --deadline=5m --skip-dirs cmd --exclude deprecated -v
 
 .PHONY: clean
 clean: ## Remove the HTML files related to the Flyteconsole and Makefile
